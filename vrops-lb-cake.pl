@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use POSIX;
 use Cwd;
-use Data::Dumper;
 
 my %nodes = ();
 my $admin_node = 0;
@@ -65,10 +64,6 @@ foreach (@ext_dirs) {
     }
 
 }
-
-
-#print Dumper(\%nodes);
-#exit;
 
 foreach (sort keys %nodes) {
     my $nodename = $_;
