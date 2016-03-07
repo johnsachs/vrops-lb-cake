@@ -21,7 +21,7 @@ closedir $cdir;
 foreach (@ext_dirs) {
 
     ## find the admin node ##
-    if (/(.*)_(\d{13})_\1/) {
+    if (/^(.*)_(\d{13})_\1/) {
         next unless -d $_;
         $admin_node = $1;
         $nodes{$1}{'dir'} = "$cwd/$_";
