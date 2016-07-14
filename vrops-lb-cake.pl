@@ -21,14 +21,18 @@ closedir $cdir;
 foreach (@ext_dirs) {
 
     ## find the admin node ##
-    if (/(.*)_(\d{13})_\1/) {
+    if (/^(.*)_(\d{13})_(\1)/) {
+        #print "DEBUG: \$_ =>$_<=\n";
+        #print "DEBUG: \$1 =>$1<=\n";
+        #print "DEBUG: \$2 =>$2<=\n";
+        #print "DEBUG: \$3 =>$3<=\n";
         next unless -d $_;
+        next unless $1 eq $3;
         $admin_node = $1;
         $nodes{$1}{'dir'} = "$cwd/$_";
         $nodes{$1}{'admin'} = 1;
 
-        print "DEBUG: \$admin_node =>$admin_node<=\n";
-        print "DEBUG: \$_ =>$_<=\n";
+        #print "DEBUG: \$admin_node =>$admin_node<=\n";
 
         ## extract the timestamp from the directory name
         ## and convert it to human readable form
@@ -75,7 +79,12 @@ foreach (sort keys %nodes) {
     ## do node directory processing
     print "$nodename\n";
     my $vrops_version = read_file("$conf_dir/lastbuildversion.txt");
+    $nodes{$nodename}{'version'} = $vrops_version;
     print "$vrops_version\n";
+
+    # Get node IP
+    $nodes{$nodename}{'ipaddress'} =
+        get_node_ipaddress(read_file("$sysenv_dir/ifconfig.txt"));
 
     # CPU
     my $cpu_count = 0;
@@ -128,6 +137,12 @@ foreach (sort keys %nodes) {
 
 }
 
+# node report
+foreach (sort keys %nodes) {
+    my $ipaddress = $nodes{$_}{'ipaddress'};
+    print "$_ - $ipaddress\n";
+    print $nodes{$_}{'version'} . "\n";
+}
 
 sub read_file {
     my ($filename) = @_;
@@ -138,4 +153,22 @@ sub read_file {
     close $in;
  
     return $all;
+}
+
+sub get_node_ipaddress {
+    my $ifconfig = shift;
+    my $ipaddress = '';
+    my $record = 0;
+
+    foreach (split(/\n/, $ifconfig)) {
+        $record = 1 if /^eth/;
+        next unless $record;
+        #print "DEBUG: =>$_<=\n";
+        if (/inet addr:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
+            $ipaddress = $1;
+            last;
+        }
+    }
+
+    return $ipaddress;
 }
