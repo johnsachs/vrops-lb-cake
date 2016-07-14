@@ -21,11 +21,15 @@ closedir $cdir;
 foreach (@ext_dirs) {
 
     ## find the admin node ##
+<<<<<<< .merge_file_PgfkeG
     if (/^(.*)_(\d{13})_(\1)/) {
         #print "DEBUG: \$_ =>$_<=\n";
         #print "DEBUG: \$1 =>$1<=\n";
         #print "DEBUG: \$2 =>$2<=\n";
         #print "DEBUG: \$3 =>$3<=\n";
+=======
+    if (/^(.*)_(\d{13})_\1/) {
+>>>>>>> .merge_file_sYtVLD
         next unless -d $_;
         next unless $1 eq $3;
         $admin_node = $1;
