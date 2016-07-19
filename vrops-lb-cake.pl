@@ -75,12 +75,25 @@ foreach (sort keys %nodes) {
     my $sysenv_dir = "$nodedir/sysenv";
     my $conf_dir = "$nodedir/conf";
     my $logs_dir = "$nodedir/logs";
+    ## slice properties files ##
+    my $rolestate_properties
+        = "$nodedir/slice-info/conf/utilities/sliceConfiguration/data/roleState.properties";
+    my $platformstate_properties
+        = "$nodedir/slice-info/conf/utilities/sliceConfiguration/data/platformState.properties";
 
     ## do node directory processing
     print "$nodename\n";
     my $vrops_version = read_file("$conf_dir/lastbuildversion.txt");
     $nodes{$nodename}{'version'} = $vrops_version;
     print "$vrops_version\n";
+
+    # Get Instance ID
+    $nodes{$nodename}{'instanceid'} =
+        get_node_instanceid(read_file($platformstate_properties));
+
+    # Get node roles
+    foreach my $roleline (split(/\n/, read_file($rolestate_properties))) {
+    }
 
     # Get node IP
     $nodes{$nodename}{'ipaddress'} =
@@ -139,8 +152,9 @@ foreach (sort keys %nodes) {
 
 # node report
 foreach (sort keys %nodes) {
+    my $instanceid = $nodes{$_}{'instanceid'};
     my $ipaddress = $nodes{$_}{'ipaddress'};
-    print "$_ - $ipaddress\n";
+    print "$_\t$instanceid\t$ipaddress\n";
     print $nodes{$_}{'version'} . "\n";
 }
 
@@ -153,6 +167,20 @@ sub read_file {
     close $in;
  
     return $all;
+}
+
+sub get_node_instanceid {
+    my $platformstate = shift;
+    my $instanceid = '';
+
+    if ($platformstate =~ /slicedinstanceid = (.*?)\n/) {
+        $instanceid = $1;
+    }
+    else {
+        $instanceid = 'could not find instance ID';
+    }
+
+    return $instanceid;
 }
 
 sub get_node_ipaddress {
