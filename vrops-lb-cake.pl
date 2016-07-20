@@ -13,6 +13,7 @@ my ($sec, $min, $hour, $day, $month, $year);
 my $milli = 0;
 my $nodecount = 0;
 my $cwd = getcwd();
+my $cluster_version = 0;
 
 opendir (my $cdir, $cwd) or die "can't get cwd: $!";
 my @ext_dirs = grep { /-extracted$||!\.zip$/ } readdir $cdir;
@@ -85,6 +86,14 @@ foreach (sort keys %nodes) {
     print "$nodename\n";
     my $vrops_version = read_file("$conf_dir/lastbuildversion.txt");
     $nodes{$nodename}{'version'} = $vrops_version;
+    $cluster_version = $vrops_version unless $cluster_version;
+    if ($vrops_version eq $cluster_version) {
+        $nodes{$nodename}{'offversion'} = 0;
+    }
+    else {
+        # this is bad - nodes are required to be the same version!
+        $nodes{$nodename}{'offversion'} = 1;
+    }
     print "$vrops_version\n";
 
     # Get Instance ID
@@ -93,6 +102,9 @@ foreach (sort keys %nodes) {
 
     # Get node roles
     foreach my $roleline (split(/\n/, read_file($rolestate_properties))) {
+        if ($roleline =~ /^(\S*)\s*\=\s*(.*?)$/) {
+            $nodes{$nodename}{$1} = $2;
+        }
     }
 
     # Get node IP
@@ -151,12 +163,26 @@ foreach (sort keys %nodes) {
 }
 
 # node report
-foreach (sort keys %nodes) {
-    my $instanceid = $nodes{$_}{'instanceid'};
-    my $ipaddress = $nodes{$_}{'ipaddress'};
-    print "$_\t$instanceid\t$ipaddress\n";
-    print $nodes{$_}{'version'} . "\n";
+print "$cluster_version\n";
+foreach my $node (sort keys %nodes) {
+    my $instanceid = $nodes{$node}{'instanceid'};
+    my $ipaddress = $nodes{$node}{'ipaddress'};
+    print "$node\t$instanceid\t$ipaddress\n";
+    if ($nodes{$node}{'offversion'}) {
+        print "!\t" . $nodes{$node}{'version'} . "\n";
+    }
+    if (!$nodes{$node}{'sliceonline'}) {
+        print "!OFFLINE:\t" . $nodes{$node}{'offlinereason'} . "\n";
+    }
 }
+
+# dump node hashes for debugging
+#foreach my $node (sort keys %nodes) {
+#    print "$node\n";
+#    foreach my $nprop (sort keys %{$nodes{$node}}) {
+#        print "\t=>$nprop<=\t=>" . $nodes{$node}{$nprop} . "<=\n";
+#    }
+#}
 
 sub read_file {
     my ($filename) = @_;
