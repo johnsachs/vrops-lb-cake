@@ -156,7 +156,7 @@ foreach (sort keys %nodes) {
     $nodes{$nodename}{'mem_total'} = $mem_total;
     $nodes{$nodename}{'mem_free'} = $mem_free;
     $nodes{$nodename}{'swap_total'} = $swap_total;
-    $nodes{$nodename}{'swwap_free'} = $swap_free;
+    $nodes{$nodename}{'swap_free'} = $swap_free;
 
 
     #foreach (@info_file) {
@@ -173,12 +173,25 @@ print "$cluster_version\n";
 foreach my $node (sort keys %nodes) {
     my $instanceid = $nodes{$node}{'instanceid'};
     my $ipaddress = $nodes{$node}{'ipaddress'};
+
+    ## output general info on the node ##
     print "$node\t$instanceid\t$ipaddress\n";
+
+    ## output version inconsistencies, if any
     if ($nodes{$node}{'offversion'}) {
-        print "!\t" . $nodes{$node}{'version'} . "\n";
+        print "\t!VERSION:\t" . $nodes{$node}{'version'} . "\n";
     }
+
+    ## report if slice is offline
     if (!$nodes{$node}{'sliceonline'}) {
-        print "!OFFLINE:\t" . $nodes{$node}{'offlinereason'} . "\n";
+        print "\t!OFFLINE:\t" . $nodes{$node}{'offlinereason'} . "\n";
+    }
+
+    ## report if swapping
+    my $swap_total = $nodes{$node}{'swap_total'};
+    my $swap_free = $nodes{$node}{'swap_free'};
+    if ($swap_total != $swap_free) {
+        print "\t!SWAPPING:\t$swap_total GB swap / $swap_free free\n";
     }
 }
 
