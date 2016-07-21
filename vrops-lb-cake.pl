@@ -83,7 +83,7 @@ foreach (sort keys %nodes) {
         = "$nodedir/slice-info/conf/utilities/sliceConfiguration/data/platformState.properties";
 
     ## do node directory processing
-    print "$nodename\n";
+    #print "$nodename\n";
     my $vrops_version = read_file("$conf_dir/lastbuildversion.txt");
     $nodes{$nodename}{'version'} = $vrops_version;
     $cluster_version = $vrops_version unless $cluster_version;
@@ -94,7 +94,7 @@ foreach (sort keys %nodes) {
         # this is bad - nodes are required to be the same version!
         $nodes{$nodename}{'offversion'} = 1;
     }
-    print "$vrops_version\n";
+    #print "$vrops_version\n";
 
     # Get Instance ID
     $nodes{$nodename}{'instanceid'} =
@@ -123,7 +123,9 @@ foreach (sort keys %nodes) {
             $cpu_name = $1;
         }
     }
-    print "$cpu_count X $cpu_name\n";
+    #print "$cpu_count X $cpu_name\n";
+    $nodes{$nodename}{'cpu_count'} = $cpu_count;
+    $nodes{$nodename}{'cpu_name'} = $cpu_name;
 
     # RAM
     my ($mem_total, $mem_free, $swap_total, $swap_free) = (0, 0, 0, 0);
@@ -150,15 +152,19 @@ foreach (sort keys %nodes) {
         $_ = sprintf("%.2f", $_);
     }
 
-    print "$mem_total GB RAM / $mem_free GB free\n$swap_total GB swap / $swap_free GB free\n\n";
+    #print "$mem_total GB RAM / $mem_free GB free\n$swap_total GB swap / $swap_free GB free\n\n";
+    $nodes{$nodename}{'mem_total'} = $mem_total;
+    $nodes{$nodename}{'mem_free'} = $mem_free;
+    $nodes{$nodename}{'swap_total'} = $swap_total;
+    $nodes{$nodename}{'swwap_free'} = $swap_free;
 
 
-    foreach (@info_file) {
-        my $info = read_file("$sysenv_dir/$_");
-        $info =~ s/^(?:.*\n){1,4}//;
-        print $info;
-        print "\n";
-    }
+    #foreach (@info_file) {
+    #    my $info = read_file("$sysenv_dir/$_");
+    #    $info =~ s/^(?:.*\n){1,4}//;
+    #    print $info;
+    #    print "\n";
+    #}
 
 }
 
